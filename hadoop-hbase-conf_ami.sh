@@ -26,7 +26,7 @@
 
 ### ATENTION ##################################################
 # Intended to be used in an EC2 Amazon AMI instance after     #
-# the execution of hadoop-hbase-install_ami.sh.               #
+# the execution of hadoop-hbase-install_ami.sh.                       #
 # The script has to be executed in the master.                #
 ###############################################################
 
