@@ -51,7 +51,7 @@ JDK_INSTALL_DIR=/opt/oracle/java
 
 # APACHE HADOOP
 HADOOP_VERSION=2.7.2
-HADOOP_BIN_ARCHIVE=hadoop-$HADOOP_VERSION-x86_64_ami.tar.gz
+HADOOP_BIN_ARCHIVE=hadoop-$HADOOP_VERSION-snappy-openssl-isal-x86_64_ami.tar.gz
 HADOOP_DOWNLOAD_LINK=https://dev.brunneis.com/hadoop/$HADOOP_BIN_ARCHIVE
 HADOOP_INSTALL_DIR=/opt/apache/hadoop
 
@@ -71,7 +71,7 @@ echo -e 'Installing Oracle JDK...\n'
 mkdir -p $JDK_INSTALL_DIR
 cd $JDK_INSTALL_DIR
 wget --no-check-certificate --no-cookies --header "Cookie: oraclelicense=accept-securebackup-cookie" \
-$JDK_DOWNLOAD_LINK
+$JDK_DOWNLOAD_LINK -O $JDK_BIN_ARCHIVE
 tar xzf $JDK_BIN_ARCHIVE
 rm -f $JDK_BIN_ARCHIVE
 ln -sf jdk$JDK_VERSION current
@@ -84,13 +84,14 @@ export PATH='$JDK_INSTALL_DIR'/current/bin:'$JDK_INSTALL_DIR'/current/jre/bin:$P
 
 # Add hadoop user (with sudo) and group
 groupadd $HADOOP_GROUP
-useradd -G $HADOOP_GROUP -p $(echo $HADOOP_PASSWORD | openssl passwd -1 -stdin) $HADOOP_USER
+useradd -p $(echo $HADOOP_PASSWORD | openssl passwd -1 -stdin) -d /home/$HADOOP_USER -s /bin/bash -G $HADOOP_GROUP $HADOOP_USER
+chown -R $HADOOP_USER:$HADOOP_GROUP /home/$HADOOP_USER
 
 # APACHE HADOOP
 echo -e 'Installing Hadoop...\n'
 mkdir -p $HADOOP_INSTALL_DIR
 cd $HADOOP_INSTALL_DIR
-wget $HADOOP_DOWNLOAD_LINK
+wget $HADOOP_DOWNLOAD_LINK -O $HADOOP_BIN_ARCHIVE
 tar xzf $HADOOP_BIN_ARCHIVE
 rm -f $HADOOP_BIN_ARCHIVE
 ln -sf hadoop-${HADOOP_VERSION} current
@@ -98,21 +99,22 @@ echo 'export HADOOP_PREFIX='$HADOOP_INSTALL_DIR'/current' > /etc/profile.d/apach
 echo 'export HADOOP_HOME=$HADOOP_PREFIX' >> /etc/profile.d/apache-hadoop.sh
 echo 'export HADOOP_COMMON_HOME=$HADOOP_PREFIX' >> /etc/profile.d/apache-hadoop.sh
 echo 'export HADOOP_CONF_DIR=$HADOOP_PREFIX/etc/hadoop' >> /etc/profile.d/apache-hadoop.sh
-echo 'export HADOOP_HDFS_HOME=$HADOOP_PREFIX/share/hadoop/hdfs' >> /etc/profile.d/apache-hadoop.sh
-echo 'export HADOOP_YARN_HOME=$HADOOP_PREFIX/share/hadoop/yarn' >> /etc/profile.d/apache-hadoop.sh
+echo 'export HADOOP_HDFS_HOME=$HADOOP_PREFIX' >> /etc/profile.d/apache-hadoop.sh
+echo 'export HADOOP_YARN_HOME=$HADOOP_PREFIX' >> /etc/profile.d/apache-hadoop.sh
 echo 'export HADOOP_MAPRED_HOME=$HADOOP_PREFIX' >> /etc/profile.d/apache-hadoop.sh
 echo 'export HADOOP_COMMON_LIB_NATIVE_DIR=$HADOOP_PREFIX/lib/native' >> /etc/profile.d/apache-hadoop.sh
 echo 'export HADOOP_OPTS=-Djava.library.path=$HADOOP_COMMON_LIB_NATIVE_DIR' >> /etc/profile.d/apache-hadoop.sh
 echo 'if ! echo $PATH | grep -q $HADOOP_PREFIX/bin:$HADOOP_PREFIX/sbin ; then 
 export PATH=$HADOOP_PREFIX/bin:$HADOOP_PREFIX/sbin:$PATH; fi' >> /etc/profile.d/apache-hadoop.sh
 . /etc/profile.d/apache-hadoop.sh
-chown -R hduser:hadoop /opt/apache/hadoop
+chown -R $HADOOP_USER:$HADOOP_GROUP /opt/apache/hadoop
+chown $HADOOP_USER:$HADOOP_GROUP /etc/profile.d/apache-hadoop.sh
 
 # APACHE HBASE
 echo -e 'Installing HBase...\n'
 mkdir -p $HBASE_INSTALL_DIR
 cd $HBASE_INSTALL_DIR
-wget $HBASE_DOWNLOAD_LINK
+wget $HBASE_DOWNLOAD_LINK -O $HBASE_BIN_ARCHIVE
 tar xzf $HBASE_BIN_ARCHIVE
 rm -f $HBASE_BIN_ARCHIVE
 ln -sf hbase-${HBASE_VERSION} current
@@ -122,7 +124,8 @@ echo 'export HBASE_LIBRARY_PATH=$HADOOP_PREFIX/lib/native' >> /etc/profile.d/apa
 echo 'if ! echo $PATH | grep -q $HBASE_INSTALL_DIR/bin ; then 
 export PATH=$HBASE_INSTALL_DIR/bin:$PATH; fi' >> /etc/profile.d/apache-hbase.sh
 rm -f $HBASE_INSTALL_DIR/current/lib/slf4j-log4j12-*.jar
-chown -R hduser:hadoop /opt/apache/hbase
+chown -R $HADOOP_USER:$HADOOP_GROUP /opt/apache/hbase
+chown $HADOOP_USER:$HADOOP_GROUP /etc/profile.d/apache-hbase.sh
 
 # HOST CONFIGURATION
 echo -e 'Configuring host...\n'
@@ -138,16 +141,15 @@ for i in `seq 3 $#` ; do
 			NEW_HOST=$MASTER_HOST
 			# Allow sudo if it is the master
 			echo $HADOOP_USER" ALL=(ALL) ALL" >> /etc/sudoers
-			service sshd restart
 			break
 		else
 			NEW_HOST=$SLAVE_HOST$(expr $i - 3)
 			# Allow sudo without password for the slaves (temporarily)
 			echo $HADOOP_USER" ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
-			service sshd restart
 
 			# Allow SSH access with password in every slave (temporarily)
 			sed -ri 's/^PasswordAuthentication\sno/PasswordAuthentication yes/' /etc/ssh/sshd_config
+			service sshd restart
 			break
 		fi
 	fi
