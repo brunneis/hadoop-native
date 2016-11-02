@@ -1,4 +1,4 @@
-# hadoop-builder_ami.sh | Build Apache Hadoop with native libraries
+# build-hadoop.sh.sh | Build Apache Hadoop with native libraries
 
 # Copyright (C) 2016 brunneis (Rodrigo Martínez)
 
@@ -18,16 +18,15 @@
 #!/bin/bash
 
 ### USAGE #####################################################
-# curl -fsSL https://[...]/hadoop-builder_ami.sh | sudo bash  #
+# sudo bash build-hadoop.sh                                   #
 ###############################################################
 
+WORKING_DIR=$(pwd)
+
 # ORACLE JDK SCRIPT VARIABLES
-# JDK_VERSION=1.7.0_79
-# JDK_BIN_ARCHIVE=jdk-7u79-linux-x64.tar.gz
-# JDK_DOWNLOAD_LINK=http://download.oracle.com/otn-pub/java/jdk/7u79-b15/$JDK_BIN_ARCHIVE
-JDK_VERSION=1.8.0_74
-JDK_BIN_ARCHIVE=jdk-8u74-linux-x64.tar.gz
-JDK_DOWNLOAD_LINK=http://download.oracle.com/otn-pub/java/jdk/8u74-b02/$JDK_BIN_ARCHIVE
+JDK_VERSION=1.8.0_112
+JDK_BIN_ARCHIVE=jdk-8u112-linux-x64.tar.gz
+JDK_DOWNLOAD_LINK=http://download.oracle.com/otn-pub/java/jdk/8u112-b15/$JDK_BIN_ARCHIVE
 JDK_INSTALL_DIR=/opt/oracle/java
 
 # APACHE MAVEN SCRIPT VARIABLES
@@ -46,23 +45,10 @@ ISAL_VERSION=2.15.0
 ISAL_SRC_ARCHIVE=v$ISAL_VERSION.tar.gz
 ISAL_DOWNLOAD_LINK=https://github.com/01org/isa-l/archive/$ISAL_SRC_ARCHIVE
 
-# FINDBUGS SCRIPT VARIABLES
-# FINDBUGS_VERSION=1.3.9
-# FINDBUGS_INSTALLATION_DIR=/opt/findbugs
-# FINDBUGS_BIN_ARCHIVE=findbugs-$FINDBUGS_VERSION.tar.gz
-# FINDBUGS_DOWNLOAD_LINK=http://prdownloads.sourceforge.net/findbugs/$FINDBUGS_BIN_ARCHIVE
-
 # APACHE HADOOP SCRIPT VARIABLES
-HADOOP_VERSION=2.7.2
+HADOOP_VERSION=2.7.3
 HADOOP_SRC_ARCHIVE=hadoop-$HADOOP_VERSION-src.tar.gz
 HADOOP_DOWNLOAD_LINK=http://apache.rediris.es/hadoop/common/hadoop-$HADOOP_VERSION/$HADOOP_SRC_ARCHIVE
-HADOOP_INSTALL_DIR=/opt/apache/hadoop
-
-# APACHE HBASE SCRIPT VARIABLES
-HBASE_VERSION=1.1.3
-HBASE_BIN_ARCHIVE=hbase-$HBASE_VERSION-bin.tar.gz
-HBASE_DOWNLOAD_LINK=http://apache.rediris.es/hbase/$HBASE_VERSION/$HBASE_BIN_ARCHIVE
-HBASE_INSTALL_DIR=/opt/apache/hbase
 
 # SYSTEM UPDATE AND BASIC DEPENDENCIES
 yum -y update && yum -y install wget \
@@ -101,7 +87,7 @@ export PATH=$M2_HOME/bin:$PATH; fi' >> /etc/profile.d/apache-maven.sh
 # GOOGLE PROTOCOL BUFFERS 2.5.0
 echo -e 'Installing ProtocolBuffer...\n'
 cd
-wget https://protobuf.googlecode.com/files/protobuf-2.5.0.tar.gz
+wget https://github.com/google/protobuf/releases/download/v2.5.0/protobuf-2.5.0.tar.gz
 tar xzf protobuf-2.5.0.tar.gz
 rm -f protobuf-2.5.0.tar.gz
 cd protobuf-2.5.0
@@ -133,26 +119,16 @@ cd isa-l-$ISAL_VERSION
 make install
 rm -rf ../isa-l-$ISAL_VERSION
 
-# FINDBUGS
-# echo -e 'Installing Findbugs...\n'
-# mkdir $FINDBUGS_INSTALLATION_DIR
-# cd $FINDBUGS_INSTALLATION_DIR
-# wget $FINDBUGS_DOWNLOAD_LINK
-# tar xzf $FINDBUGS_BIN_ARCHIVE
-# rm -f $FINDBUGS_BIN_ARCHIVE
-# ln -sf findbugs-$FINDBUGS_VERSION current
-# echo 'export FINDBUGS_HOME='$FINDBUGS_INSTALLATION_DIR'/current' > /etc/profile.d/findbugs.sh
-# . /etc/profile.d/findbugs.sh
-
 # APACHE HADOOP
 echo -e 'Compiling and installing Hadoop...\n'
 mkdir -p $HADOOP_INSTALL_DIR
-cd $HADOOP_INSTALL_DIR
+cd $WORKING_DIR
 wget $HADOOP_DOWNLOAD_LINK
 tar xzf $HADOOP_SRC_ARCHIVE
 rm -f $HADOOP_SRC_ARCHIVE
 cd hadoop-${HADOOP_VERSION}-src
 mvn package -Pdist,native -DskipTests -Dtar -Drequire.snappy -Drequire.openssl -Drequire.isal
+mv hadoop-dist/target/hadoop-${HADOOP_VERSION}.tar.gz $WORKING_DIR
 
 echo "Done!"
 exit
