@@ -12,7 +12,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-FROM brunneis/centos-base
+FROM brunneis/centos-jdk
 MAINTAINER "Rodrigo Martínez" <dev@brunneis.com>
 
 ################################################
@@ -20,8 +20,7 @@ MAINTAINER "Rodrigo Martínez" <dev@brunneis.com>
 ################################################	
 
 # Environment variables
-ENV JAVA_HOME=/usr \
-HADOOP_HOME=/opt/hadoop/default
+ENV HADOOP_HOME=/opt/hadoop/default
 ENV LD_LIBRARY_PATH=$HADOOP_HOME/lib/native \
 PATH=$PATH:$HADOOP_HOME/bin\
 :$HADOOP_HOME/sbin
@@ -35,7 +34,6 @@ RUN \
 	&& export HADOOP_KEYS="https://dist.apache.org/repos/dist/release/hadoop/common/KEYS" \
 	&& yum -y update \
 	&& yum -y install \
-		java-1.8.0-openjdk-devel \
 		openssh-server \
 		openssh-clients \
 		which \

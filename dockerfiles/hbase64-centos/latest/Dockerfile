@@ -12,7 +12,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-FROM brunneis/centos-base
+FROM brunneis/centos-jdk
 MAINTAINER "Rodrigo Martínez" <dev@brunneis.com>
 
 ################################################
@@ -20,8 +20,7 @@ MAINTAINER "Rodrigo Martínez" <dev@brunneis.com>
 ################################################
 
 # Container environment variables
-ENV JAVA_HOME=/usr \
-LD_LIBRARY_PATH=/opt/hadoop/lib/native \
+ENV LD_LIBRARY_PATH=/opt/hadoop/lib/native \
 PATH=$PATH:/opt/hbase/default/bin
 
 # Install HBase
@@ -33,7 +32,6 @@ RUN \
 	&& export HBASE_KEYS="https://dist.apache.org/repos/dist/release/hbase/KEYS" \
 	&& yum -y update \
 	&& yum -y install \
-		java-1.8.0-openjdk-devel \
 		openssh-server \
 		openssh-clients \
 		snappy \
