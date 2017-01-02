@@ -30,7 +30,7 @@ RUN \
 	export HADOOP_VERSION="$(curl https://dist.apache.org/repos/dist/release/hadoop/common/stable2 | awk '{print $2}')" \
 	&& export HADOOP_ARCHIVE="$HADOOP_VERSION.tar.gz" \
 	&& export HADOOP_ARCHIVE_URL="https://dist.apache.org/repos/dist/release/hadoop/common/$HADOOP_VERSION/$HADOOP_ARCHIVE" \
-	&& export HADOOP_SHA_URL="$HADOOP_ARCHIVE_URL.asc" \
+	&& export HADOOP_ASC_URL="$HADOOP_ARCHIVE_URL.asc" \
 	&& export HADOOP_KEYS="https://dist.apache.org/repos/dist/release/hadoop/common/KEYS" \
 	&& yum -y update \
 	&& yum -y install \
@@ -40,7 +40,7 @@ RUN \
 		snappy \
 	&& yum clean all \
 	&& wget $HADOOP_ARCHIVE_URL \
-	&& wget $HADOOP_SHA_URL \
+	&& wget $HADOOP_ASC_URL \
 	&& wget $HADOOP_KEYS \
 	&& gpg --import KEYS \
 	&& gpg --verify $HADOOP_ARCHIVE.asc \

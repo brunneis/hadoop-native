@@ -1,4 +1,4 @@
-# HBase (Vanilla) for Orchestration on CentOS 7.
+# Hadoop (Vanilla) for Orchestration on CentOS 7 with native libraries for x86_64.
 # Copyright (C) 2016 Rodrigo Martínez <dev@brunneis.com>
 #
 # This program is free software: you can redistribute it and/or modify
@@ -16,44 +16,49 @@ FROM brunneis/centos-jdk
 MAINTAINER "Rodrigo Martínez" <dev@brunneis.com>
 
 ################################################
-# HBASE
+# HADOOP
 ################################################
 
-# Container environment variables
-ENV LD_LIBRARY_PATH=/opt/hadoop/lib/native \
-PATH=$PATH:/opt/hbase/default/bin
+# Environment variables
+ENV HADOOP_HOME=/opt/hadoop/default
+ENV LD_LIBRARY_PATH=$HADOOP_HOME/lib/native \
+PATH=$PATH:$HADOOP_HOME/bin\
+:$HADOOP_HOME/sbin
 
-# Install HBase
+ENV HADOOP_VERSION 2.6.5
+ENV HADOOP_ARCHIVE hadoop-$HADOOP_VERSION.tar.gz
+ENV HADOOP_ARCHIVE_URL https://archive.apache.org/dist/hadoop/core/hadoop-$HADOOP_VERSION/$HADOOP_ARCHIVE
+ENV HADOOP_ASC_URL $HADOOP_ARCHIVE_URL.asc
+ENV HADOOP_KEYS https://archive.apache.org/dist/hadoop/core/KEYS
+
+# Install Hadoop
 RUN \
-	export HBASE_VERSION="$(curl https://dist.apache.org/repos/dist/release/hbase/stable | awk '{print $2}')" \
-	&& export HBASE_ARCHIVE="hbase-$HBASE_VERSION-bin.tar.gz" \
-	&& export HBASE_ARCHIVE_URL="https://dist.apache.org/repos/dist/release/hbase/$HBASE_VERSION/$HBASE_ARCHIVE" \
-	&& export HBASE_ASC_URL="$HBASE_ARCHIVE_URL.asc" \
-	&& export HBASE_KEYS="https://dist.apache.org/repos/dist/release/hbase/KEYS" \
-	&& yum -y update \
+	yum -y update \
 	&& yum -y install \
 		openssh-server \
 		openssh-clients \
+		which \
 		snappy \
 	&& yum clean all \
-	&& wget $HBASE_ARCHIVE_URL \
-	&& wget $HBASE_ASC_URL \
-	&& wget $HBASE_KEYS \
+	&& wget $HADOOP_ARCHIVE_URL \
+	&& wget $HADOOP_ASC_URL \
+	&& wget $HADOOP_KEYS \
 	&& gpg --import KEYS \
-	&& gpg --verify $HBASE_ARCHIVE.asc \
-	&& mkdir /opt/hbase \
-	&& tar xvf $HBASE_ARCHIVE -C /opt/hbase \
-	&& rm -f $HBASE_ARCHIVE \
-	&& rm -f $HBASE_ARCHIVE.asc \
+	&& gpg --verify $HADOOP_ARCHIVE.asc \
+	&& mkdir /opt/hadoop \
+	&& tar xvf $HADOOP_ARCHIVE -C /opt/hadoop \
+	&& rm -f $HADOOP_ARCHIVE \
+	&& rm -f $HADOOP_ARCHIVE.asc \
 	&& rm -f KEYS \
-	&& ln -s /opt/hbase/*hbase* /opt/hbase/default
+	&& ln -s /opt/hadoop/*hadoop* /opt/hadoop/default \
+	&& rm -rf /opt/hadoop/default/lib/native
 	
 # Native x86_64 libraries
-ADD lib-native-x86_64.tar.gz /opt/hadoop/lib
-RUN ln -s /lib64/libcrypto.so.10 /opt/hadoop/lib/native/libcrypto.so
+ADD lib-native-x86_64.tar.gz /opt/hadoop/default/lib
+RUN ln -s /lib64/libcrypto.so.10 /opt/hadoop/default/lib/native/libcrypto.so
 
 # Configuration volume
-VOLUME ["/opt/hbase/default/conf"]
+VOLUME ["/opt/hadoop/default/etc/hadoop"]
 
 # Data volume
 VOLUME ["/data"]
