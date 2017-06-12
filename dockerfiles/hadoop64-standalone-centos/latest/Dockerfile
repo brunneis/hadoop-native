@@ -17,15 +17,8 @@ MAINTAINER "Rodrigo Martínez" <dev@brunneis.com>
 
 ################################################
 # HADOOP STANDALONE
-################################################	
+################################################
 
-# Environment variables
-ENV HADOOP_HOME=/opt/hadoop/default
-ENV LD_LIBRARY_PATH=$HADOOP_HOME/lib/native \
-PATH=$PATH:$HADOOP_HOME/bin\
-:$HADOOP_HOME/sbin
-
-# Dependencies
 RUN \
 	export HADOOP_VERSION="$(curl https://dist.apache.org/repos/dist/release/hadoop/common/stable2 | awk '{print $2}')" \
 	&& export HADOOP_ARCHIVE="$HADOOP_VERSION.tar.gz" \
@@ -52,6 +45,13 @@ RUN \
 	&& ln -s /opt/hadoop/*hadoop* /opt/hadoop/default \
 	&& rm -rf /opt/hadoop/default/lib/native
 
+ENV HADOOP_PREFIX=/opt/hadoop/default
+ENV LD_LIBRARY_PATH=$HADOOP_PREFIX/lib/native \
+HADOOP_HOME=$HADOOP_PREFIX \
+HADOOP_CONF_DIR=$HADOOP_PREFIX/etc/hadoop \
+PATH=$PATH:$HADOOP_PREFIX/bin\
+:$HADOOP_PREFIX/sbin
+
 # Native x86_64 libraries
 ADD lib-native-x86_64.tar.gz /opt/hadoop/default/lib
 
@@ -71,26 +71,25 @@ RUN \
 	&& mv ~/.ssh/id_rsa.pub ~/.ssh/authorized_keys \
 	&& echo "<configuration><property><name>fs.defaultFS</name>\
 		<value>hdfs://localhost:8020</value></property></configuration>" \
-	> $HADOOP_HOME/etc/hadoop/core-site.xml \
+	> $HADOOP_PREFIX/etc/hadoop/core-site.xml \
 	&& echo "<configuration><property><name>dfs.replication</name>\
 		<value>1</value></property></configuration>" \
-	> $HADOOP_HOME/etc/hadoop/hdfs-site.xml \
+	> $HADOOP_PREFIX/etc/hadoop/hdfs-site.xml \
 	&& echo "<configuration><property><name>mapreduce.framework.name</name>\
 		<value>yarn</value></property></configuration>" \
-	> $HADOOP_HOME/etc/hadoop/mapred-site.xml \
+	> $HADOOP_PREFIX/etc/hadoop/mapred-site.xml \
 	&& echo "<configuration><property><name>yarn.nodemanager.aux-services</name>\
 		<value>mapreduce_shuffle</value></property>\n\
 		<property><name>yarn.nodemanager.aux-services.mapreduce.shuffle.class</name>\
 		<value>org.apache.hadoop.mapred.ShuffleHandler</value></property>\n\
 		<property><name>yarn.resourcemanager.hostname</name>\
 		<value>localhost</value></property></configuration>" \
-	> $HADOOP_HOME/etc/hadoop/yarn-site.xml \
+	> $HADOOP_PREFIX/etc/hadoop/yarn-site.xml \
 	&& sed -i 's@export JAVA_HOME.*$@export JAVA_HOME=/usr@' \
-		$HADOOP_HOME/etc/hadoop/hadoop-env.sh
+		$HADOOP_PREFIX/etc/hadoop/hadoop-env.sh
 
-# Data volume
-VOLUME ["/data"]
+RUN $HADOOP_PREFIX/bin/hdfs namenode -format
 
-WORKDIR $HADOOP_HOME
-COPY entrypoint.sh .
-ENTRYPOINT ["bash","entrypoint.sh"]
+COPY entrypoint.sh /
+RUN chmod u+x /entrypoint.sh
+ENTRYPOINT ["/entrypoint.sh"]

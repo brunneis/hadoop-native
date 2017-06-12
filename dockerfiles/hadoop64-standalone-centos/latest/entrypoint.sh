@@ -3,8 +3,10 @@
 # Start SSH server
 /usr/sbin/sshd -D &
 
-# Format NameNode and start Hadoop services
-hdfs namenode -format
+# Format NameNode
+rm /tmp/*.pid
+
+# Start Hadoop services
 start-dfs.sh
 start-yarn.sh
 
