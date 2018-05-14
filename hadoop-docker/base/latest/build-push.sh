@@ -1,3 +1,3 @@
 #!/bin/bash
-docker build -t brunneis/hadoop-64-passive .
-docker push brunneis/hadoop-64-passive
+docker build -t brunneis/hadoop-x86-64-base .
+docker push brunneis/hadoop-x86-64-base

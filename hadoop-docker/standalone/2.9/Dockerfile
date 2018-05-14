@@ -1,5 +1,5 @@
 # Hadoop Standalone (Vanilla) on CentOS 7 with native libraries for x86_64.
-# Copyright (C) 2017 Rodrigo Martínez <dev@brunneis.com>
+# Copyright (C) 2018 Rodrigo Martínez <dev@brunneis.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -12,11 +12,12 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-FROM brunneis/hadoop-x86-64-base:2.8
+ARG HADOOP_VERSION
+FROM brunneis/hadoop-x86-64-base:$HADOOP_VERSION
 MAINTAINER "Rodrigo Martínez" <dev@brunneis.com>
 
 ################################################
-# HADOOP STANDALONE 2.8
+# HADOOP STANDALONE 2.9
 ################################################
 
 RUN \

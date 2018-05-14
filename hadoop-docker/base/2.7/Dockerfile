@@ -1,5 +1,5 @@
 # Hadoop (Vanilla) for Orchestration on CentOS 7 with native libraries for x86_64.
-# Copyright (C) 2016-2017 Rodrigo Martínez <dev@brunneis.com>
+# Copyright (C) 2016-2018 Rodrigo Martínez <dev@brunneis.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -26,7 +26,7 @@ HADOOP_CONF_DIR=$HADOOP_PREFIX/etc/hadoop \
 PATH=$PATH:$HADOOP_PREFIX/bin\
 :$HADOOP_PREFIX/sbin
 
-ENV HADOOP_VERSION 2.7.3
+ARG HADOOP_VERSION
 ENV HADOOP_ARCHIVE hadoop-$HADOOP_VERSION.tar.gz
 ENV HADOOP_ARCHIVE_URL https://archive.apache.org/dist/hadoop/core/hadoop-$HADOOP_VERSION/$HADOOP_ARCHIVE
 ENV HADOOP_ASC_URL $HADOOP_ARCHIVE_URL.asc
