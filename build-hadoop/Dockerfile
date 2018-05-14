@@ -1,5 +1,5 @@
 # Build Apache Hadoop with native libraries
-# Copyright (C) 2017 Rodrigo Martínez <dev@brunneis.com>
+# Copyright (C) 2017-2018 Rodrigo Martínez <dev@brunneis.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -30,7 +30,7 @@ ENV ISAL_SRC_ARCHIVE=v$ISAL_VERSION.tar.gz
 ENV ISAL_DOWNLOAD_LINK=https://github.com/01org/isa-l/archive/$ISAL_SRC_ARCHIVE
 
 # APACHE HADOOP SCRIPT VARIABLES
-ENV HADOOP_VERSION=2.8.0
+ARG HADOOP_VERSION
 ENV HADOOP_ARCHIVE=hadoop-$HADOOP_VERSION-src.tar.gz
 ENV HADOOP_ARCHIVE_URL https://archive.apache.org/dist/hadoop/core/hadoop-$HADOOP_VERSION/$HADOOP_ARCHIVE
 ENV HADOOP_ASC_URL $HADOOP_ARCHIVE_URL.asc

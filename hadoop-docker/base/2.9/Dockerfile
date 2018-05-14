@@ -1,5 +1,5 @@
 # Hadoop (Vanilla) for Orchestration on CentOS 7 with native libraries for x86_64.
-# Copyright (C) 2016-2018 Rodrigo Martínez <dev@brunneis.com>
+# Copyright (C) 2018 Rodrigo Martínez <dev@brunneis.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -16,8 +16,10 @@ FROM brunneis/jdk-centos:1.8
 MAINTAINER "Rodrigo Martínez" <dev@brunneis.com>
 
 ################################################
-# HADOOP
+# HADOOP 2.9
 ################################################
+
+ARG HADOOP_VERSION
 
 ENV HADOOP_PREFIX=/opt/hadoop/default
 ENV LD_LIBRARY_PATH=$HADOOP_PREFIX/lib/native \
@@ -26,14 +28,15 @@ HADOOP_CONF_DIR=$HADOOP_PREFIX/etc/hadoop \
 PATH=$PATH:$HADOOP_PREFIX/bin\
 :$HADOOP_PREFIX/sbin
 
+ENV HADOOP_VERSION $HADOOP_VERSION
+ENV HADOOP_ARCHIVE hadoop-$HADOOP_VERSION.tar.gz
+ENV HADOOP_ARCHIVE_URL https://archive.apache.org/dist/hadoop/core/hadoop-$HADOOP_VERSION/$HADOOP_ARCHIVE
+ENV HADOOP_ASC_URL $HADOOP_ARCHIVE_URL.asc
+ENV HADOOP_KEYS https://archive.apache.org/dist/hadoop/core/KEYS
+
 # Install Hadoop
 RUN \
-	export HADOOP_VERSION="$(curl https://dist.apache.org/repos/dist/release/hadoop/common/stable2 | awk '{print $2}')" \
-	&& export HADOOP_ARCHIVE="$HADOOP_VERSION.tar.gz" \
-	&& export HADOOP_ARCHIVE_URL="https://dist.apache.org/repos/dist/release/hadoop/common/$HADOOP_VERSION/$HADOOP_ARCHIVE" \
-	&& export HADOOP_ASC_URL="$HADOOP_ARCHIVE_URL.asc" \
-	&& export HADOOP_KEYS="https://dist.apache.org/repos/dist/release/hadoop/common/KEYS" \
-	&& yum -y update \
+	yum -y update \
 	&& yum -y install \
 		openssh-server \
 		openssh-clients \
@@ -52,7 +55,7 @@ RUN \
 	&& rm -f KEYS \
 	&& ln -s /opt/hadoop/*hadoop* $HADOOP_PREFIX \
 	&& rm -rf $HADOOP_PREFIX/lib/native
-	
+
 # Native x86_64 libraries
 ADD lib-native-x86_64.tar.gz /opt/hadoop/default/lib
 RUN ln -s /lib64/libcrypto.so.10 /opt/hadoop/default/lib/native/libcrypto.so
